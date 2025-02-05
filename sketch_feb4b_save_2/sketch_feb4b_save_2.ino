@@ -129,7 +129,7 @@ void loop() {
 
 void updateDisplay(float flow1, float total1, float flow2, float total2) {
     int textWidth = 0;
-    tft.setTextSize(3);
+    tft.setTextSize(4);
     tft.setTextColor(ST77XX_WHITE, ST77XX_BLACK);  // Overwrite previous text
 
     // Flow Rate 1
@@ -161,7 +161,7 @@ void updateDisplay(float flow1, float total1, float flow2, float total2) {
     }
 
     // Labels (these don't change, so no need to update every time)
-    tft.setTextSize(3);
+    tft.setTextSize(4);
     tft.setTextColor(ST77XX_WHITE);
     tft.setCursor(10, 30);
     tft.print("F1:");
@@ -172,15 +172,15 @@ void updateDisplay(float flow1, float total1, float flow2, float total2) {
     tft.setCursor(10, 210);
     tft.print("T2:");
 
-    tft.setTextSize(2.5);
-    tft.setCursor(170, 37);
+    tft.setTextSize(3.5);
+    tft.setCursor(200, 37);
     tft.print("L/min");
-    tft.setCursor(170, 157);
+    tft.setCursor(200, 157);
     tft.print("L/min");
 
-    tft.setCursor(200, 97);
+    tft.setCursor(260, 97);
     tft.print("L");
-    tft.setCursor(200, 217);
+    tft.setCursor(260, 217);
     tft.print("L");
 }
 
