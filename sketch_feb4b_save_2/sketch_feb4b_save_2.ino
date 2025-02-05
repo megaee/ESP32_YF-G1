@@ -105,8 +105,8 @@ void loop() {
         flowRate2 = ((100.0 / (currentTime - oldTime)) * pulseCount2) / FLOW_CALIBRATION;
         total_litre2 += flowRate2;
 
-        if (total_litre1 >= 9999) total_litre1 = 0;
-        if (total_litre2 >= 9999) total_litre2 = 0;
+        if (total_litre1 >= 99999) total_litre1 = 0;
+        if (total_litre2 >= 99999) total_litre2 = 0;
 
         pulseCount1 = pulseCount2 = 0;
         oldTime = currentTime;
@@ -128,63 +128,59 @@ void loop() {
 }
 
 void updateDisplay(float flow1, float total1, float flow2, float total2) {
-    tft.setTextColor(ST77XX_WHITE, ST77XX_BLACK);  // Use black background to overwrite old values
+    int textWidth = 0;
+    tft.setTextSize(3);
+    tft.setTextColor(ST77XX_WHITE, ST77XX_BLACK);  // Overwrite previous text
 
-    tft.setTextSize(4);
-    // Flow 1
+    // Flow Rate 1
+    if (flow1 != lastFlowRate1) {
+        tft.setCursor(80, 30);
+        tft.print(flow1, 1);  // Print new value (1 decimal place)
+        lastFlowRate1 = flow1;
+    }
+
+    // Total Liters 1
+    if (total1 != lastTotalLitre1) {
+        tft.setCursor(80, 90);
+        tft.print(total1, 1);
+        lastTotalLitre1 = total1;
+    }
+
+    // Flow Rate 2
+    if (flow2 != lastFlowRate2) {
+        tft.setCursor(80, 150);
+        tft.print(flow2, 1);
+        lastFlowRate2 = flow2;
+    }
+
+    // Total Liters 2
+    if (total2 != lastTotalLitre2) {
+        tft.setCursor(80, 210);
+        tft.print(total2, 1);
+        lastTotalLitre2 = total2;
+    }
+
+    // Labels (these don't change, so no need to update every time)
+    tft.setTextSize(3);
+    tft.setTextColor(ST77XX_WHITE);
     tft.setCursor(10, 30);
     tft.print("F1:");
-    tft.setTextSize(4);
-    tft.setCursor(80, 30);
-    tft.print("       ");  // Clear previous value
-    tft.setCursor(80, 30);
-    tft.print(flow1);
-    tft.setTextSize(3);
-    tft.setCursor(180, 30);
-    tft.print("L/m");
-
-    tft.setTextSize(4);
-    // Total 1
-    String total1_str = String(total1, 1);
-    int textWidth = total1_str.length() * 12;
     tft.setCursor(10, 90);
     tft.print("T1:");
-    tft.setTextSize(4);
-    tft.setCursor(80, 90);
-    tft.print("       ");
-    tft.setCursor(80, 90);
-    tft.print(total1);
-    tft.setTextSize(3);
-    tft.setCursor(180 + textWidth + 5, 90);
-    tft.print("L");
-
-    tft.setTextSize(4);
-    // Flow 2
     tft.setCursor(10, 150);
     tft.print("F2:");
-    tft.setTextSize(4);
-    tft.setCursor(80, 150);
-    tft.print("       ");
-    tft.setCursor(80, 150);
-    tft.print(flow2);
-    tft.setTextSize(3);
-    tft.setCursor(180, 150);
-    tft.print("L/m");
-
-    tft.setTextSize(4);
-    // Total 2
-    String total2_str = String(total2, 1);
-    textWidth = total2_str.length() * 12;
     tft.setCursor(10, 210);
     tft.print("T2:");
-    tft.setTextSize(4);
-    tft.setCursor(80, 210);
-    tft.print("       ");
-    tft.setCursor(80, 210);
-    tft.print(total2);
-    tft.setTextSize(3);
-    tft.setCursor(180 + textWidth + 5, 210);
-    tft.print("L");
 
-    delay(5);  // Small delay to prevent flickering
+    tft.setTextSize(2.5);
+    tft.setCursor(170, 37);
+    tft.print("L/min");
+    tft.setCursor(170, 157);
+    tft.print("L/min");
+
+    tft.setCursor(200, 97);
+    tft.print("L");
+    tft.setCursor(200, 217);
+    tft.print("L");
 }
+
