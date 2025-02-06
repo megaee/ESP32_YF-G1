@@ -1,6 +1,9 @@
-#define BLYNK_TEMPLATE_ID "TMPL3Zcy2rQO6"
-#define BLYNK_TEMPLATE_NAME "Switch ON OFF LED"
-#define BLYNK_AUTH_TOKEN "SoYOUHMfbTiOdVn6jOhiv7u891lKvzRJ"
+//#define BLYNK_TEMPLATE_ID "TMPL3Zcy2rQO6"
+//#define BLYNK_TEMPLATE_NAME "Switch ON OFF LED"
+//#define BLYNK_AUTH_TOKEN "SoYOUHMfbTiOdVn6jOhiv7u891lKvzRJ"
+#define BLYNK_TEMPLATE_ID "TMPL3KsoYxZbe"
+#define BLYNK_TEMPLATE_NAME "HAZ LABS"
+#define BLYNK_AUTH_TOKEN "-q31Vs2SH-OTc2vPwGbepFlGB5bgbG_5"
 
 #include <WiFi.h>
 #include <WiFiClient.h>
@@ -25,8 +28,8 @@
 SPIClass spi = SPIClass(VSPI);
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
 
-char ssid[] = "C3StreamLand";
-char pass[] = "Ccube$123";
+char ssid[] = "Kishore";
+char pass[] = "12345678";
 
 volatile int pulseCount1 = 0, pulseCount2 = 0;
 float flowRate1 = 0, total_litre1 = 0;
@@ -36,24 +39,47 @@ float lastFlowRate2 = -1, lastTotalLitre2 = -1;
 
 unsigned long oldTime = 0;
 
+unsigned long lastWiFiCheckTime = 0;  // Store the last Wi-Fi check time
+unsigned long wifiReconnectInterval = 600000;  // 10 minutes in milliseconds
+bool checkedAfter10Minutes = false;  // Flag to check if 10 minutes have passed
+
 Preferences preferences;
 
 void IRAM_ATTR pulseCounter1() { pulseCount1++; }
 void IRAM_ATTR pulseCounter2() { pulseCount2++; }
 
 void connectWiFi() {
+    Serial.println("Connecting to WiFi...");
     WiFi.begin(ssid, pass);
     unsigned long startAttemptTime = millis();
-    while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 10000) {
+
+    while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 10000) {  // 10 seconds to attempt connection
         delay(500);
         Serial.print(".");
     }
+
     if (WiFi.status() == WL_CONNECTED) {
         Serial.println("\nConnected to WiFi");
         Blynk.config(BLYNK_AUTH_TOKEN);
         Blynk.connect();
     } else {
         Serial.println("\nWiFi connection failed, running offline mode.");
+    }
+}
+
+void checkWiFiConnection() {
+    // Check if it's been 10 minutes since the board was powered on
+    if (!checkedAfter10Minutes && millis() - lastWiFiCheckTime >= wifiReconnectInterval) {
+        Serial.println("10 minutes passed, checking WiFi connection...");
+        
+        if (WiFi.status() != WL_CONNECTED) {
+            Serial.println("WiFi is still not connected. Attempting to reconnect...");
+            connectWiFi();  // Attempt to reconnect
+        } else {
+            Serial.println("WiFi is already connected.");
+        }
+
+        checkedAfter10Minutes = true;  // Mark that we've done the 10-minute check
     }
 }
 
@@ -95,6 +121,8 @@ void setup() {
 }
 
 void loop() {
+      checkWiFiConnection();  // Check Wi-Fi status after 10 minutes
+
     unsigned long currentTime = millis();
     if (currentTime - oldTime >= 1000) {
         detachInterrupt(digitalPinToInterrupt(FLOW_SENSOR_1_PIN));
@@ -123,6 +151,14 @@ void loop() {
             lastTotalLitre1 = total_litre1;
             lastFlowRate2 = flowRate2;
             lastTotalLitre2 = total_litre2;
+        }
+               // Check if Blynk is connected before sending data
+        if (Blynk.connected()) {
+            Blynk.virtualWrite(V0, flowRate1);      // Send flowRate1 to virtual pin V0
+            Blynk.virtualWrite(V1, total_litre1);   // Send total_litre1 to virtual pin V1
+            Blynk.virtualWrite(V2, flowRate2);      // Send flowRate2 to virtual pin V2
+            Blynk.virtualWrite(V3, total_litre2);   // Send total_litre2 to virtual pin V3
+            Blynk.run();                            // Run Blynk to process any updates
         }
     }
 }
